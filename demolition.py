@@ -27,10 +27,28 @@ class Block(object):
             space.add(body)
         self.contour = contour
         self.contour.friction = .5
+        self.color = random.choice(THECOLORS.values())
       
     def draw(self, screen):
         pointlist = [to_pygame(point) for point in self.contour.get_points()]
-        pygame.draw.polygon(screen, THECOLORS['red'], pointlist)
+        pygame.draw.polygon(screen, self.color, pointlist)
+
+class Ball(object):
+    def __init__(self, space, pos_x, pos_y, radius):
+        density = .0007
+        mass = density * (3.14 * radius ** 2)
+        inertia = pymunk.moment_for_circle(mass, 0, radius, (0,0))
+        body = pymunk.Body(mass, inertia)
+        body.position = (pos_x, pos_y)
+        circle = pymunk.Circle(body, radius, (0, 0))
+        space.add(body, circle)
+        self.circle = circle
+        self.body = body
+        self.color = random.choice(THECOLORS.values())
+
+    def draw(self, screen):
+        position = to_pygame(self.body.position)
+        pygame.draw.circle(screen, self.color, position, self.circle.radius)
 
 def main():
     pygame.init()
@@ -47,6 +65,7 @@ def main():
         world = json.load(f)
 
     blocks = [Block(space, *block) for block in world['blocks']] 
+    balls = [Ball(space, 350, 180, 20)]
     while running:
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -58,8 +77,8 @@ def main():
         
         space.step(1/50.0)
 
-        for block in blocks:
-            block.draw(screen)
+        for shape in blocks + balls:
+            shape.draw(screen)
         
         pygame.display.flip()
         clock.tick(50)
