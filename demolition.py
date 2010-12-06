@@ -7,16 +7,18 @@ from pygame.locals import *
 from pygame.color import *
 import pymunk
 import math
+import json
 def to_pygame(p):
     """Small hack to convert pymunk to pygame coordinates"""
     return int(p.x), int(-p.y+600)
 
 class Block(object):
     def __init__(self, space, pos_x, pos_y, width, height, static=False):
+        density = .0007
         if static:
             body = pymunk.Body(pymunk.inf, pymunk.inf)
         else:
-            body = pymunk.Body(1, 10)
+            body = pymunk.Body(density * width * height, 1000 * density * width * height)
         body.position = (pos_x, pos_y)
         corners = [(0,0), (width,0), (width, height), (0, height)]
         contour = pymunk.Poly(body, corners, offset=(-width/2, -height/2))
@@ -24,6 +26,7 @@ class Block(object):
         if not static:
             space.add(body)
         self.contour = contour
+        self.contour.friction = .5
       
     def draw(self, screen):
         pointlist = [to_pygame(point) for point in self.contour.get_points()]
@@ -40,9 +43,10 @@ def main():
     space = pymunk.Space()
     space.gravity = (0.0, -900.0)
 
-    blocks = [Block(space, 200, 600, 50, 50), 
-              Block(space, 300, 100, 800, 10, static=True),
-              Block(space, 245, 200, 50, 50)]
+    with open(sys.argv[1]) as f:
+        world = json.load(f)
+
+    blocks = [Block(space, *block) for block in world['blocks']] 
     while running:
         for event in pygame.event.get():
             if event.type == QUIT:
