@@ -12,14 +12,19 @@ def to_pygame(p):
     return int(p.x), int(-p.y+600)
 
 class Block(object):
-    def __init__(self, space, pos_x, pos_y, width, height):
-        body = pymunk.Body(pymunk.inf, pymunk.inf)
+    def __init__(self, space, pos_x, pos_y, width, height, static=False):
+        if static:
+            body = pymunk.Body(pymunk.inf, pymunk.inf)
+        else:
+            body = pymunk.Body(1, 10)
         body.position = (pos_x, pos_y)
         corners = [(0,0), (width,0), (width, height), (0, height)]
         contour = pymunk.Poly(body, corners, offset=(-width/2, -height/2))
-        space.add(contour, body)
+        space.add(contour)
+        if not static:
+            space.add(body)
         self.contour = contour
-
+      
     def draw(self, screen):
         pointlist = [to_pygame(point) for point in self.contour.get_points()]
         pygame.draw.polygon(screen, THECOLORS['red'], pointlist)
@@ -35,7 +40,9 @@ def main():
     space = pymunk.Space()
     space.gravity = (0.0, -900.0)
 
-    blocks = [Block(space, 200, 600, 50, 50)]
+    blocks = [Block(space, 200, 600, 50, 50), 
+              Block(space, 300, 100, 800, 10, static=True),
+              Block(space, 245, 200, 50, 50)]
     while running:
         for event in pygame.event.get():
             if event.type == QUIT:
