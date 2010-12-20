@@ -53,6 +53,10 @@ class Ball(object):
         position = to_pygame(self.body.position)
         pygame.draw.circle(screen, self.color, position, self.circle.radius)
 
+    def apply_impulse(self, x, y):
+        self.body.apply_impulse(pymunk.Vec2d(x, y))
+
+
 def main():
     pygame.init()
     screen = pygame.display.set_mode((800, 600))
@@ -68,14 +72,25 @@ def main():
         world = json.load(f)
 
     blocks = [Block(space, *block) for block in world['blocks']]
-    balls = [Ball(space, 20, 125, 20)]
-    balls[0].body.apply_impulse(pymunk.Vec2d(140, 700))
+    balls = []
     while running:
         for event in pygame.event.get():
             if event.type == QUIT:
                 running = False
             elif event.type == KEYDOWN and event.key == K_ESCAPE:
                 running = False
+            elif event.type == MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    mpos = pygame.mouse.get_pos()
+                    mpos = mpos[0], HEIGHT - mpos[1]
+                    pygame.mouse.get_rel()
+            elif event.type == MOUSEBUTTONUP:
+                if event.button == 1:
+                    ball = Ball(space, *mpos, radius=20)
+                    rel = pygame.mouse.get_rel()
+                    rel = rel[0] * 2, -rel[1] * 2
+                    balls.append(ball)
+                    ball.apply_impulse(*rel)
 
         screen.fill(THECOLORS["white"])
 
