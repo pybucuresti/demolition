@@ -75,6 +75,16 @@ def main():
 
     blocks = [Block(space, *block) for block in world['blocks']]
     balls = []
+
+    target = Block(space, 450, 70, 40, 40)
+    blocks.append(target)
+
+    def handle_collision(space, arbiter):
+        if target.contour not in arbiter.shapes:
+            return
+        print "OUCH"
+    space.set_default_collision_handler(None, None, None, handle_collision)
+
     while running:
         for event in pygame.event.get():
             if event.type == QUIT:
