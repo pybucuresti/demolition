@@ -8,9 +8,12 @@ from pygame.color import *
 import pymunk
 import math
 import json
+
+HEIGHT = 600
+
 def to_pygame(p):
     """Small hack to convert pymunk to pygame coordinates"""
-    return int(p.x), int(-p.y+600)
+    return int(p.x), int(-p.y+HEIGHT)
 
 class Block(object):
     def __init__(self, space, pos_x, pos_y, width, height, static=False):
@@ -28,7 +31,7 @@ class Block(object):
         self.contour = contour
         self.contour.friction = .5
         self.color = random.choice(THECOLORS.values())
-      
+
     def draw(self, screen):
         pointlist = [to_pygame(point) for point in self.contour.get_points()]
         pygame.draw.polygon(screen, self.color, pointlist)
@@ -52,11 +55,11 @@ class Ball(object):
 
 def main():
     pygame.init()
-    screen = pygame.display.set_mode((600, 600))
+    screen = pygame.display.set_mode((800, 600))
     pygame.display.set_caption("blocks.")
     clock = pygame.time.Clock()
     running = True
-    
+
     pymunk.init_pymunk()
     space = pymunk.Space()
     space.gravity = (0.0, -900.0)
@@ -64,24 +67,26 @@ def main():
     with open(sys.argv[1]) as f:
         world = json.load(f)
 
-    blocks = [Block(space, *block) for block in world['blocks']] 
-    balls = [Ball(space, 350, 180, 20)]
+    blocks = [Block(space, *block) for block in world['blocks']]
+    balls = [Ball(space, 20, 125, 20)]
+    balls[0].body.apply_impulse(pymunk.Vec2d(140, 700))
     while running:
         for event in pygame.event.get():
             if event.type == QUIT:
                 running = False
             elif event.type == KEYDOWN and event.key == K_ESCAPE:
                 running = False
-        
+
         screen.fill(THECOLORS["white"])
-        
+
         space.step(1/50.0)
 
         for shape in blocks + balls:
             shape.draw(screen)
-        
+
         pygame.display.flip()
         clock.tick(50)
-        
+
+
 if __name__ == '__main__':
     sys.exit(main())
