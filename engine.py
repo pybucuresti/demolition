@@ -17,6 +17,14 @@ class World(object):
         space.gravity = (0.0, -900.0)
         self.space = space
 
+    def get_state(self):
+        for shape in self.objects:
+            yield shape.get_state()
+
+    def save_level(self, filename):
+        with open(filename, "w") as f:
+            json.dump(list(self.get_state()), f)
+
     def load_level(self, filename):
         with open(filename) as f:
             level = json.load(f)
@@ -31,6 +39,26 @@ class World(object):
             shape.draw(screen)
 
 class Block(object):
+    #def __init__(self, space, pos_x, pos_y, points, static=False):
+    #    density = .0007
+    #    if static:
+    #        body = pymunk.Body(pymunk.inf, pymunk.inf)
+    #    else:
+    #        body = pymunk.Body(density * width * height,
+    #                           1000 * density * width * height)
+    #    body.position = (pos_x, pos_y)
+    #    self.body = body
+    #    corners = self.body.world_to_local(points)
+    #    contour = pymunk.Poly(body, corners, offset=(0, 0))
+    #    space.add(contour)
+    #    if not static:
+    #        space.add(body)
+    #    self.contour = contour
+    #    self.contour.friction = .5
+    #    self.contour.elasticity = 0.5
+    #    self.color = random.choice(THECOLORS.values())
+    #    self.static = static
+
     def __init__(self, space, pos_x, pos_y, width, height, static=False):
         density = .0007
         if static:
@@ -47,12 +75,23 @@ class Block(object):
         self.contour = contour
         self.contour.friction = .5
         self.contour.elasticity = 0.5
+        self.body = body
+        self.static = static
         self.color = random.choice(THECOLORS.values())
+
 
     def draw(self, screen):
         pointlist = [to_pygame(point, screen)
                      for point in self.contour.get_points()]
         pygame.draw.polygon(screen, self.color, pointlist)
+
+    def get_state(self):
+        return {
+            "type":"blocks",
+            "pos_x":self.body.position[0],
+            "pos_y":self.body.position[1],
+            "points":[tuple(p) for p in self.contour.get_points()],
+            "static":self.static}
 
 class Ball(object):
     def __init__(self, space, pos_x, pos_y, radius):
@@ -71,6 +110,12 @@ class Ball(object):
     def draw(self, screen):
         position = to_pygame(self.body.position, screen)
         pygame.draw.circle(screen, self.color, position, self.circle.radius)
+
+    #def get_state(self):
+    #    return {
+    #        "type":"ball",
+    #        "points":self.contour.get_points(),
+    #        "static":self.static}
 
     def apply_impulse(self, x, y):
         self.body.apply_impulse(pymunk.Vec2d(x, y))
