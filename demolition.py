@@ -30,6 +30,7 @@ class Block(object):
             space.add(body)
         self.contour = contour
         self.contour.friction = .5
+        self.contour.elasticity = 0.5
         self.color = random.choice(THECOLORS.values())
 
     def draw(self, screen):
@@ -44,6 +45,7 @@ class Ball(object):
         body = pymunk.Body(mass, inertia)
         body.position = (pos_x, pos_y)
         circle = pymunk.Circle(body, radius, (0, 0))
+        circle.elasticity = 0.9
         space.add(body, circle)
         self.circle = circle
         self.body = body
@@ -94,13 +96,13 @@ def main():
 
         screen.fill(THECOLORS["white"])
 
-        space.step(1/50.0)
+        space.step(1/200.0)
 
         for shape in blocks + balls:
             shape.draw(screen)
 
         pygame.display.flip()
-        clock.tick(50)
+        clock.tick(200)
 
 
 if __name__ == '__main__':
